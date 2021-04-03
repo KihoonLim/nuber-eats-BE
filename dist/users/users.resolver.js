@@ -15,16 +15,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const create_account_dto_1 = require("./dtos/create-account.dto");
+const login_dto_1 = require("./dtos/login.dto");
 const user_entity_1 = require("./entities/user.entity");
 const users_service_1 = require("./users.service");
 let UsersResolver = class UsersResolver {
-    constructor(userService) {
-        this.userService = userService;
+    constructor(usersService) {
+        this.usersService = usersService;
     }
     hi() {
         return false;
     }
-    createAccount(createAccountInput) {
+    async createAccount(createAccountInput) {
+        try {
+            return this.usersService.createAccount(createAccountInput);
+        }
+        catch (e) {
+            return {
+                ok: false,
+                error: e
+            };
+        }
+    }
+    async login(loginInput) {
+        try {
+            return this.usersService.login(loginInput);
+        }
+        catch (error) {
+            return {
+                ok: false,
+                error
+            };
+        }
     }
 };
 __decorate([
@@ -38,8 +59,15 @@ __decorate([
     __param(0, graphql_1.Args('input')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_account_dto_1.CreateAccountInput]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], UsersResolver.prototype, "createAccount", null);
+__decorate([
+    graphql_1.Mutation(returns => login_dto_1.LoginOutput),
+    __param(0, graphql_1.Args('input')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [login_dto_1.LoginInput]),
+    __metadata("design:returntype", Promise)
+], UsersResolver.prototype, "login", null);
 UsersResolver = __decorate([
     graphql_1.Resolver(of => user_entity_1.User),
     __metadata("design:paramtypes", [users_service_1.UsersService])

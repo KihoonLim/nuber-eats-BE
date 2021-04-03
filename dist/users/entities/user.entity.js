@@ -13,7 +13,36 @@ exports.User = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const core_entity_1 = require("../../common/entities/core.entity");
 const typeorm_1 = require("typeorm");
+const bcrypt = require("bcrypt");
+const common_1 = require("@nestjs/common");
+const class_validator_1 = require("class-validator");
+var UserRole;
+(function (UserRole) {
+    UserRole[UserRole["client"] = 0] = "client";
+    UserRole[UserRole["owner"] = 1] = "owner";
+    UserRole[UserRole["delivery"] = 2] = "delivery";
+})(UserRole || (UserRole = {}));
+graphql_1.registerEnumType(UserRole, { name: 'UserRole' });
 let User = class User extends core_entity_1.CoreEntity {
+    async hashPassword() {
+        try {
+            this.password = await bcrypt.hash(this.password, 10);
+        }
+        catch (err) {
+            console.log(err);
+            throw new common_1.InternalServerErrorException();
+        }
+    }
+    async checkPassword(aPassword) {
+        try {
+            const ok = await bcrypt.compare(aPassword, this.password);
+            return ok;
+        }
+        catch (err) {
+            console.log(err);
+            throw new common_1.InternalServerErrorException();
+        }
+    }
 };
 __decorate([
     typeorm_1.Column(),
@@ -26,10 +55,17 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    typeorm_1.Column(),
-    graphql_1.Field(type => String),
-    __metadata("design:type", String)
+    typeorm_1.Column({ type: 'enum', enum: UserRole }),
+    graphql_1.Field(type => UserRole),
+    class_validator_1.IsEnum(UserRole),
+    __metadata("design:type", Number)
 ], User.prototype, "role", void 0);
+__decorate([
+    typeorm_1.BeforeInsert(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], User.prototype, "hashPassword", null);
 User = __decorate([
     graphql_1.InputType({ isAbstract: true }),
     graphql_1.ObjectType(),

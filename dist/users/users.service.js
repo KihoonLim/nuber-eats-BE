@@ -18,8 +18,46 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("./entities/user.entity");
 let UsersService = class UsersService {
-    constructor(user) {
-        this.user = user;
+    constructor(users) {
+        this.users = users;
+    }
+    async createAccount({ email, password, role }) {
+        try {
+            const exists = await this.users.findOne({ email });
+            if (exists) {
+                return { ok: false, error: 'THere is a user with that email already' };
+            }
+            await this.users.save(this.users.create({ email, password, role }));
+            return { ok: true };
+        }
+        catch (e) {
+            return { ok: false, error: 'Couldn\'t create account' };
+        }
+    }
+    async login({ email, password }) {
+        try {
+            const user = await this.users.findOne({ email });
+            if (!user) {
+                return {
+                    ok: false,
+                    error: 'User not found'
+                };
+            }
+            const passwordCorrect = await user.checkPassword(password);
+            if (!passwordCorrect) {
+                return {
+                    ok: false,
+                    error: 'Wrong password'
+                };
+            }
+            return {
+                ok: true,
+                token: '111'
+            };
+        }
+        catch (error) {
+            return { ok: false, error };
+        }
     }
 };
 UsersService = __decorate([
